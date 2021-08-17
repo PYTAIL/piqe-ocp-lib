@@ -124,7 +124,7 @@ class OperatorInstaller(OcpBase):
         :param operator_namespace: namespace of the operator
         return: version of the operator
         """
-        if self.is_operator_installed(operator_name, operator_namespace) == True:
+        if self.is_operator_installed(operator_name, operator_namespace) is True:
             return self.ohp_obj.get_package_manifest(operator_name).status.channels[0]['currentCSVDesc']['version']    
         else:
             logger.info("%s operator is not installed", operator_name)
@@ -137,7 +137,7 @@ class OperatorInstaller(OcpBase):
         :param operator_namespace: namespace of the operator
         return: channel of the operator
         """
-        if self.is_operator_installed(operator_name, operator_namespace) == True: 
+        if self.is_operator_installed(operator_name, operator_namespace) is True: 
             return self.ohp_obj.get_package_default_channel(operator_name)
         else:
             logger.info("%s operator is not installed", operator_name)
