@@ -110,6 +110,14 @@ class TestOperatorInstaller:
         verify = OperatorInstaller(get_kubeconfig)
         assert verify.is_operator_installed("packageserver", "openshift-operator-lifecycle-manager") is True
 
+    def test_get_version_of_operator(self, get_kubeconfig):
+        verify = OperatorInstaller(get_kubeconfig)
+        assert verify.get_version_of_operator("packageserver", "openshift-operator-lifecycle-manager") is not None
+  
+    def test_get_channel_of_operator(self, get_kubeconfig):
+        verify = OperatorInstaller(get_kubeconfig)
+        assert verify.get_channel_of_operator("packageserver", "openshift-operator-lifecycle-manager") is not None
+                                               
     @pytest.mark.unit
     @mock.patch.object(Subscription, "get_subscription")
     @mock.patch.object(Subscription, "delete_subscription", side_effect=[ApiException])
