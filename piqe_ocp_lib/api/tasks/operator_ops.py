@@ -117,6 +117,32 @@ class OperatorInstaller(OcpBase):
         """
         return self.csv.get_cluster_service_version(operator_name, operator_namespace) is not None
 
+    def get_version_of_operator(self, operator_name: str, operator_namespace: str) -> str:
+        """
+        Get the version of operator if operator is installed
+        :param operator_name: name of the operator.
+        :param operator_namespace: namespace of the operator
+        return: version of the operator
+        """
+        if self.is_operator_installed(operator_name, operator_namespace) is True:
+            return self.ohp_obj.get_package_manifest(operator_name).status.channels[0]['currentCSVDesc']['version']    
+        else:
+            logger.info("%s operator is not installed", operator_name)
+            return None   
+
+    def get_channel_of_operator(self, operator_name: str, operator_namespace: str) -> str:
+        """
+        Get the channel of operator if operator is installed
+        :param operator_name: name of the operator.
+        :param operator_namespace: namespace of the operator
+        return: channel of the operator
+        """
+        if self.is_operator_installed(operator_name, operator_namespace) is True: 
+            return self.ohp_obj.get_package_default_channel(operator_name)
+        else:
+            logger.info("%s operator is not installed", operator_name)
+            return None
+          
     def delete_operator_from_cluster(self, operator_name: str, namespace: str) -> bool:
         """
         Uninstall an operator from a cluster
