@@ -233,6 +233,9 @@ class TestSubscription:
         sub_resp_obj = get_test_objects.sub_obj.create_subscription("nfd", nfd_default_channel, "test-project1")
         assert sub_resp_obj.kind == "Subscription" and sub_resp_obj.metadata.name == "nfd"
 
+    def test_get_all_subscription(self, get_test_objects):
+        assert get_test_objects.sub_obj.get_all_subscription is not None         
+
     def test_get_subscription(self, get_test_objects):
         # Get the subscription and check kind and name
         # for correctness
