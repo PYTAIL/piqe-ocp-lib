@@ -108,7 +108,7 @@ class OperatorInstaller(OcpBase):
         sub_resp = self.sub_obj.create_subscription(operator_name, channel_name, operator_namespace)
         return sub_resp is not None
 
-    def is_operator_installed(self, operator_name: str, operator_namespace: str) -> Optional[Dict]:
+    def is_operator_installed(self, operator_name: str) -> Optional[Dict]:
         """
         Check if operator is installed and returned true or false
         :param operator_name: name of the operator.
@@ -120,6 +120,7 @@ class OperatorInstaller(OcpBase):
                 target_item = i
         csv_name = self.ohp_obj.get_package_channel_by_name(operator_name,
                    all_sub_resp_obj.items[target_item]['spec']['channel']).currentCSV
+        operator_namespace = all_sub_resp_obj.items[target_item]['metadata']['namespace']
         assert 'channel' in all_sub_resp_obj.items[target_item]['spec'].keys()
         assert 'sourceNamespace' in all_sub_resp_obj.items[target_item]['spec'].keys()
         assert 'startingCSV' in all_sub_resp_obj.items[target_item]['spec'].keys()
@@ -129,13 +130,13 @@ class OperatorInstaller(OcpBase):
         assert self.csv.is_cluster_service_version_present(csv_name, operator_namespace)
         return all_sub_resp_obj.items[target_item]['spec']    
 
-    def get_version_of_operator(self, operator_name: str, operator_namespace: str) -> Optional[str]:
+    def get_version_of_operator(self, operator_name: str) -> Optional[str]:
         """
         Get the version of operator if operator is installed
         :param operator_name: name of the operator.
         return: version of the operator
         """
-        ioi = self.is_operator_installed(operator_name, operator_namespace)
+        ioi = self.is_operator_installed(operator_name)
         if ioi is not None:
             return self.ohp_obj.get_package_channel_by_name(operator_name, 
              ioi['channel'])['currentCSVDesc']['version']
@@ -143,13 +144,13 @@ class OperatorInstaller(OcpBase):
             logger.info("%s operator is not installed", operator_name)
             return None   
 
-    def get_channel_of_operator(self, operator_name: str, operator_namespace: str) -> Optional[str]:
+    def get_channel_of_operator(self, operator_name: str) -> Optional[str]:
         """
         Get the channel of operator if operator is installed
         :param operator_name: name of the operator.
         return: channel of the operator
         """
-        ioi = self.is_operator_installed(operator_name, operator_namespace)
+        ioi = self.is_operator_installed(operator_name)
         if ioi is not None:
             return ioi['channel']
         else:
