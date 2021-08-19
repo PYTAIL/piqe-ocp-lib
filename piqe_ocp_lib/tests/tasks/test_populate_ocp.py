@@ -117,7 +117,7 @@ class TestOperatorInstaller:
     def test_get_channel_of_operator(self, get_kubeconfig):
         verify = OperatorInstaller(get_kubeconfig)
         assert verify.get_channel_of_operator("local-storage-operator", "openshift-local-storage") is not None
-                                               
+
     @pytest.mark.unit
     @mock.patch.object(Subscription, "get_subscription")
     @mock.patch.object(Subscription, "delete_subscription", side_effect=[ApiException])
