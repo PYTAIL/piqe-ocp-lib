@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Dict
 
 from kubernetes.client.rest import ApiException
 
@@ -108,15 +108,55 @@ class OperatorInstaller(OcpBase):
         sub_resp = self.sub_obj.create_subscription(operator_name, channel_name, operator_namespace)
         return sub_resp is not None
 
-    def is_operator_installed(self, operator_name: str, operator_namespace: str) -> bool:
+    def is_operator_installed(self, operator_name: str) -> Optional[Dict]:
         """
         Check if operator is installed and returned true or false
         :param operator_name: name of the operator.
-        :param operator_namespace: namespace of the operator
-        return: installed or not
+        return: object of spec of respective operator's subscription
         """
-        return self.csv.get_cluster_service_version(operator_name, operator_namespace) is not None
+        all_sub_resp_obj = self.sub_obj.get_all_subscription()
+        for i in range(0,len(all_sub_resp_obj.items)):
+            if operator_name in str(all_sub_resp_obj.items[i]):
+                target_item = i
+        csv_name = self.ohp_obj.get_package_channel_by_name(operator_name,
+                   all_sub_resp_obj.items[target_item]['spec']['channel']).currentCSV
+        operator_namespace = all_sub_resp_obj.items[target_item]['metadata']['namespace']
+        assert 'channel' in all_sub_resp_obj.items[target_item]['spec'].keys()
+        assert 'sourceNamespace' in all_sub_resp_obj.items[target_item]['spec'].keys()
+        assert 'startingCSV' in all_sub_resp_obj.items[target_item]['spec'].keys()
+        assert 'name' in all_sub_resp_obj.items[target_item]['spec'].keys()
+        assert all_sub_resp_obj.items[target_item]['spec']['name'] == operator_name
+        assert all_sub_resp_obj.items[target_item]['status']['state'] == 'AtLatestKnown'
+        assert self.csv.is_cluster_service_version_present(csv_name, operator_namespace)
+        return all_sub_resp_obj.items[target_item]['spec']    
 
+    def get_version_of_operator(self, operator_name: str) -> Optional[str]:
+        """
+        Get the version of operator if operator is installed
+        :param operator_name: name of the operator.
+        return: version of the operator
+        """
+        ioi = self.is_operator_installed(operator_name)
+        if ioi is not None:
+            return self.ohp_obj.get_package_channel_by_name(operator_name, 
+             ioi['channel'])['currentCSVDesc']['version']
+        else:
+            logger.info("%s operator is not installed", operator_name)
+            return None   
+
+    def get_channel_of_operator(self, operator_name: str) -> Optional[str]:
+        """
+        Get the channel of operator if operator is installed
+        :param operator_name: name of the operator.
+        return: channel of the operator
+        """
+        ioi = self.is_operator_installed(operator_name)
+        if ioi is not None:
+            return ioi['channel']
+        else:
+            logger.info("%s operator is not installed", operator_name)
+            return None
+          
     def delete_operator_from_cluster(self, operator_name: str, namespace: str) -> bool:
         """
         Uninstall an operator from a cluster
