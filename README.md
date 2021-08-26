@@ -14,26 +14,83 @@ The PIQE test libraries are a collection of Python libraries that enable you to 
 ## Getting started
 The following steps will prepare your environment for executing or developing tests.
 
-#### Prepare the environment
 
-Eventually a Python Package will be available, but for now, simply clone this repository.
+### Prepare the environment
 
-    git clone https://github.com/piqe-test-libraries/piqe-ocp-lib.git
+#### Create virtualenv 
 
-Change directory to piqe-ocp-lib and create a virtual environment.
+create a virtual environment and activate it.
 
     python3 -m venv scenario
-
-Enter the virtual environment, export the environment variables and performn a pip install.
-
     source scenario/bin/activate
-    export KUBECONFIG=/vagrant/auth/ocp43/kubeconfig
-    pip install .
+        
+Make sure you have the latest version of pip, wheel, and setuptools
 
-At this point, your environment is prepared. Verify that you can connect to your OpenShift instance.
+```shell script
+python -m pip install --upgrade pip setuptools wheel
+```
 
-    $ oc cluster-info
-    Kubernetes master is running at https://api.<yourdomain>.com:6443
+#### Install the OC client
+
+Download the oc client and extract it into a `bin` directory in the `$PATH`
+```shell script
+wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz
+
+tar xvzf openshift-client-linux.tar.gz -C ~/bin/
+```
+
+#### Setup authentication with OCP cluster
+
+The ocp-lib will use the kubeconfig for authenticating to your cluster. Make sure you have a copy of the `kubeconfig` 
+. Once the the file is in place, verify that you can connect to your OpenShift instance.
+
+```shell script
+export KUBECONFIG=/<some>/<path>/kubeconfig
+$ oc cluster-info
+Kubernetes master is running at https://api.<yourdomain>.com:6443
+```
+
+### User Guide
+
+Once you're environment is setup per the [prepare the environment](#prepare-the-environment) 
+you can install the package. Eventually a Python Package will be available, but for now, install from the repository.
+
+```shell script
+pip install git+https://github.com/piqe-test-libraries/piqe-ocp-lib.git
+```
+
+
+### Developer Guide
+Once you're environment is setup per the [prepare the environment](#prepare-the-environment) perform the 
+following steps
+
+
+#### Fork Repository
+
+Use the GitHub UI to fork the repository
+
+#### Clone Fork
+
+```shell script
+git clone https://github.com/<user>/piqe-ocp-lib.git
+```
+
+#### Setup git remote
+Setup the original repo as remote repo to be able to continually pull changes
+
+```shell script
+cd piqe-ocp-lib
+make setup-remote
+``` 
+
+#### Setup dev requirements
+
+Run the make file to setup the dev environment. This will install the required dependencies
+
+```shell script
+cd piqe-ocp-lib
+make dev
+```
 
 #### Try running a test
 
@@ -62,13 +119,80 @@ Results similar to those shown below should be presented.
 
     ======================================= 1 passed in 0.96s =======================================
 
-#### Cluster Config
+#### Create Feature Branch
+```shell script
+git checkout -b CSSW-<ID>
+```
+
+Now you're ready to code and develop on the piqe-ocp-lib!
+
+#### NOTE: Cluster Config
 
 Some task-level APIs or tests require the use of a cluster_config yaml file that describes 
 the layout of the cluster and the resources being deployed. You can either specify the file using a command
 line flag or set the variable `PIQE_OCP_LIB_CLUSTER_CONF` variable to the path. 
 
 For reference you can refer to the one used in our tests [here](piqe_ocp_lib/tests/config/smoke_ocp_config.yaml)
+
+### Contributions
+
+#### Guidelines
+We have the following standards and guidelines
+
+ * All tests must pass
+ * All linting must pass
+
+If you forget to run the linting, we have a github actions job that runs through these on any changes. 
+This allows us to make sure each patch meets the standards.
+
+We also highly encourage developers to be looking to provide more tests or enhance existing tests for fixes 
+or new features they maybe submitting. If there is a reason that the changes don’t have any accompanying tests 
+we should be annotating the code changes with `TODO` comments with the following information:
+
+ * State that the code needs tests coverage
+ * Quick statement of why it couldn’t be added.
+```
+#TODO: This needs test coverage. <Reason>.
+```
+#### Before Submitting
+
+##### Get Latest Changes
+Always make sure you have the latest changes from the upstream repo
+
+```shell script
+git fetch upstream
+git rebase upstream/master
+```
+
+##### Check and Fix Linting Errors
+
+```shell script
+make lint
+# if any failures fix them with the below command
+make format
+git commit --amend --no-edit
+```
+
+##### Squash commits
+
+If you have multiple commits and you've not been using `git commit --amend` then please squash the commits. 
+You can use the interactive rebase menu to squash your commits
+
+```shell script
+git rebase -i HEAD~<the number of commits to latest developed commit>
+```
+
+##### Push to Origin
+```shell script
+git push origin <branch>
+```
+
+##### Create the Pull Request
+
+Use the GitHub UI to create the pull request
+
+When the PR is created it will run the upstream actions that will perform linting checks and initiate downstream tests
+that run against a downstream small OCP cluster. 
 
 ## Release process
 

@@ -224,3 +224,118 @@ class TestOcpNodes:
             decoded_str = command_api_response[2].decode("utf-8")
             logger.info(f"Decoded stderr string {decoded_str}")
             assert decoded_str.find("executable file not found in $PATH") >= 1
+
+    def test_get_all_master_nodes(self, setup_params):
+        """
+        Verify that a list of all master nodes is returned
+        1. Call get_master_nodes method
+        2. Verify that the response object is of kind NodeList
+        :param setup_params:
+        :return:
+        """
+        node_api_obj = setup_params["node_api_obj"]
+        # Get all master nodes
+        api_response = node_api_obj.get_master_nodes()
+        node_count = len(api_response.items)
+        logger.info("{} master nodes returned in the list".format(node_count))
+        for master_node in api_response.items:
+            assert "node-role.kubernetes.io/master" in master_node.metadata.labels.keys()
+        assert api_response.kind == "NodeList"
+
+    def test_get_all_worker_nodes(self, setup_params):
+        """
+        Verify that a list of all worker nodes is returned
+        1. Call get_worker_nodes method
+        2. Verify that the response object is of kind NodeList
+        :param setup_params:
+        :return:
+        """
+        node_api_obj = setup_params["node_api_obj"]
+        # Get all worker nodes
+        api_response = node_api_obj.get_worker_nodes()
+        node_count = len(api_response.items)
+        logger.info("{} worker nodes returned in the list".format(node_count))
+        if len(api_response.items) > 0:
+            for worker_node in api_response.items:
+                assert "node-role.kubernetes.io/worker" in worker_node.metadata.labels.keys()
+        assert api_response.kind == "NodeList"
+
+    def test_is_node_schedulable(self, setup_params):
+        """
+        Verify that a boolean is returned based on the node schedulable status
+        1. Call get_master_nodes method via a ocp_nodes instance
+        2. Call is_node_schedulable method via a ocp_nodes instance
+        3. Verify that a True is returned if node is schedulable & a false is returned
+            if node is unschedulable
+        4. Call get_worker_nodes method via a ocp_nodes instance
+        5. Call is_node_schedulable method via a ocp_nodes instance
+        6. Verify that a True is returned if node is schedulable & a false is returned
+            if node is unschedulable
+        :param setup_params:
+        :return:
+        """
+        node_api_obj = setup_params["node_api_obj"]
+        # Check if all master nodes are schedulable/unschedulable
+        master_node_list = node_api_obj.get_master_nodes()
+        for master_node_name in master_node_list.items:
+            node_schedulable_status = node_api_obj.is_node_schedulable(node_name=master_node_name.metadata.name)
+            if not node_schedulable_status:
+                assert node_schedulable_status is False
+            else:
+                assert node_schedulable_status is True
+        # Check if all worker nodes are schedulable/unschedulable
+        worker_node_list = node_api_obj.get_worker_nodes()
+        for worker_node_name in worker_node_list.items:
+            node_schedulable_status = node_api_obj.is_node_schedulable(node_name=worker_node_name.metadata.name)
+            if not node_schedulable_status:
+                assert node_schedulable_status is False
+            else:
+                assert node_schedulable_status is True
+
+    def test_mark_node_unschedulable(self, setup_params):
+        """
+        Verify that masters/worker nodes are marked unschedulable
+        1. Call get_master_nodes method via a ocp_nodes instance
+        2. Call mark_node_unschedulable method
+        3. Verify that the response object has unschedulable set to True
+        4. Call get_worker_nodes method via a ocp_nodes instance
+        5. Call mark_node_unschedulable method
+        6. Verify that the response object has unschedulable set to True
+        :param setup_params:
+        :return:
+        """
+        node_api_obj = setup_params["node_api_obj"]
+        # Mark all master nodes unschedulable
+        master_node_list = node_api_obj.get_master_nodes()
+        for master_node_name in master_node_list.items:
+            api_response = node_api_obj.mark_node_unschedulable(node_name=master_node_name.metadata.name)
+            assert api_response.kind == "Node"
+        # Mark all worker nodes unschedulable
+        worker_node_list = node_api_obj.get_worker_nodes()
+        for worker_node_name in worker_node_list.items:
+            api_response = node_api_obj.mark_node_unschedulable(node_name=worker_node_name.metadata.name)
+            assert api_response.kind == "Node"
+
+    def test_mark_node_schedulable(self, setup_params):
+        """
+        Verify that a masters/worker nodes are marked schedulable
+        1. Call get_master_nodes method via a ocp_nodes instance
+        2. Call mark_node_schedulable method
+        3. Verify that the response object has unschedulable set to None
+        4. Call get_worker_nodes method via a ocp_nodes instance
+        5. Call mark_node_schedulable method
+        6. Verify that the response object has unschedulable set to True
+        :param setup_params:
+        :return:
+        """
+        node_api_obj = setup_params["node_api_obj"]
+        # Mark all master nodes schedulable
+        master_node_list = node_api_obj.get_master_nodes()
+        for master_node_name in master_node_list.items:
+            api_response = node_api_obj.mark_node_schedulable(node_name=master_node_name.metadata.name)
+            assert api_response.kind == "Node"
+        # Mark all worker nodes schedulable
+        worker_node_list = node_api_obj.get_worker_nodes()
+        for worker_node_name in worker_node_list.items:
+            api_response = node_api_obj.mark_node_schedulable(node_name=worker_node_name.metadata.name)
+            assert api_response.kind == "Node"

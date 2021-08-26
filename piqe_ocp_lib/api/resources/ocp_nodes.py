@@ -1,7 +1,9 @@
 import logging
 import subprocess
+from typing import Optional
 
 from kubernetes.client.rest import ApiException
+from openshift.dynamic.resource import ResourceInstance, ResourceList
 
 from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.api.resources.ocp_base import OcpBase
@@ -257,3 +259,88 @@ class OcpNodes(OcpBase):
             "Command - %s - execution status:\n" "RETCODE: %s\nSTDOUT: %s\nSTDERR: %s\n", command, ret, out, err
         )
         return ret, out, err
+
+    def get_master_nodes(self) -> Optional[ResourceList]:
+        """
+        Method that returns a list of master node objects
+        :param label_selector: Used to return a a list of nodes based on the provided label(s)
+        :return: V1NodeList on success. None on failure.
+        """
+        master_node_object_list = None
+        try:
+            master_node_object_list = self.get_all_nodes(label_selector="node-role.kubernetes.io/master")
+        except ApiException as e:
+            logger.error("Exception when calling method list_node: %s\n", e)
+        return master_node_object_list
+
+    def get_worker_nodes(self) -> Optional[ResourceList]:
+        """
+        Method that returns a list of worker node objects
+        :param label_selector: Used to return a a list of nodes based on the provided label(s)
+        :return: V1NodeList on success. None on failure.
+        """
+        worker_node_object_list = None
+        try:
+            worker_node_object_list = self.get_all_nodes(label_selector="node-role.kubernetes.io/worker")
+        except ApiException as e:
+            logger.error("Exception when calling method list_node: %s\n", e)
+        return worker_node_object_list
+
+    def is_node_schedulable(self, node_name: str) -> bool:
+        """
+        Return the node schedulable status
+        :param node_name:
+        :return: Node schedulable status, Either True or False. None on failure.
+        """
+        node_object = None
+        try:
+            node_object = self.ocp_nodes.get(name=node_name)
+            if node_object.spec.unschedulable:
+                logger.info("Node %s status is unschedulable" % node_name)
+                return False
+            else:
+                logger.info("Node %s status is schedulable" % node_name)
+                return True
+        except ApiException as e:
+            logger.error("Exception encountered while determining the node schedulable status: %s\n", e)
+        return node_object
+
+    def mark_node_schedulable(self, node_name: str) -> Optional[ResourceInstance]:
+        """
+        Return node which was marked as schedulable
+        :param node_name:
+        :return: A V1Node object. None on failure.
+        """
+        api_response = None
+        body = {"spec": {"unschedulable": False}}
+        schedulable_status = self.is_node_schedulable(node_name)
+        if schedulable_status:
+            logger.info("Node %s is already schedulable" % node_name)
+            api_response = self.ocp_nodes.get(name=node_name)
+        else:
+            try:
+                api_response = self.ocp_nodes.patch(name=node_name, body=body)
+                logger.info("Node %s marked schedulable" % node_name)
+            except ApiException as e:
+                logger.error("Exception encountered while marking node as schedulable: %s\n", e)
+        return api_response
+
+    def mark_node_unschedulable(self, node_name: str) -> Optional[ResourceInstance]:
+        """
+        Return node which was marked unschedulable
+        :param node_name:
+        :return: A V1Node object. None on failure.
+        """
+        api_response = None
+        body = {"spec": {"unschedulable": True}}
+        unschedulable_status = self.is_node_schedulable(node_name)
+        if not unschedulable_status:
+            logger.info("Node %s already unscheduled" % node_name)
+            api_response = self.ocp_nodes.get(name=node_name)
+        else:
+            try:
+                api_response = self.ocp_nodes.patch(name=node_name, body=body)
+                logger.info("Node %s marked unschedulable" % node_name)
+            except ApiException as e:
+                logger.error("Exception encountered while marking node unschedulable: %s\n", e)
+        return api_response

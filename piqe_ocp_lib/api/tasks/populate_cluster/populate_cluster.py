@@ -229,9 +229,7 @@ class PopulateOcpCluster:
                 logger.info("Python version is %s", self.python_version)
                 threads = list()
                 for project in filtered_projects:
-                    thread = threading.Thread(
-                        target=populate, name=f"Thread_{project.project_name}", args=(project,)
-                    )
+                    thread = threading.Thread(target=populate, name=f"Thread_{project.project_name}", args=(project,))
                     threads.append(thread)
                     thread.start()
                 for thread in threads:

@@ -108,13 +108,13 @@ class OperatorInstaller(OcpBase):
         sub_resp = self.sub_obj.create_subscription(operator_name, channel_name, operator_namespace)
         return sub_resp is not None
 
-    def is_operator_installed(self, operator_name: str) -> Optional[Dict]:
+    def check_operator_installed(self, operator_name: str) -> Optional[Dict]:
         """
         Check if operator is installed and returned true or false
         :param operator_name: name of the operator.
         return: object of spec of respective operator's subscription
         """
-        all_sub_resp_obj = self.sub_obj.get_all_subscription()
+        all_sub_resp_obj = self.sub_obj.get_all_subscriptions()
         for i in range(0,len(all_sub_resp_obj.items)):
             if operator_name in str(all_sub_resp_obj.items[i]):
                 target_item = i
@@ -136,7 +136,7 @@ class OperatorInstaller(OcpBase):
         :param operator_name: name of the operator.
         return: version of the operator
         """
-        ioi = self.is_operator_installed(operator_name)
+        ioi = self.check_operator_installed(operator_name)
         if ioi is not None:
             return self.ohp_obj.get_package_channel_by_name(operator_name, 
              ioi['channel'])['currentCSVDesc']['version']
@@ -150,7 +150,7 @@ class OperatorInstaller(OcpBase):
         :param operator_name: name of the operator.
         return: channel of the operator
         """
-        ioi = self.is_operator_installed(operator_name)
+        ioi = self.check_operator_installed(operator_name)
         if ioi is not None:
             return ioi['channel']
         else:

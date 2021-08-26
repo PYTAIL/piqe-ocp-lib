@@ -515,7 +515,7 @@ class Subscription(OcpBase):
             logger.exception("Exception when calling method create_subscription: %s\n" % e)
         return api_response
 
-    def get_all_subscription(self) -> Optional[ResourceInstance]:
+    def get_all_subscriptions(self) -> Optional[ResourceInstance]:
         """
         A method to get all the subscription in the cluster.
         :param return: A Subscription object

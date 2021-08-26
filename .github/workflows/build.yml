@@ -29,5 +29,5 @@ jobs:
       - name: Install dependencies
         run: make dev
 
-      - name: Formatting and Linting
+      - name: Linting
         run: make lint
