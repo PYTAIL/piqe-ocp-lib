@@ -61,7 +61,7 @@ class OcpMachineSet(OcpBase):
         :param machine_set_name: (str) name of the machine set
         :return: Machine set role on success OR empty string on failure
         """
-        role = ''
+        role = ""
         machine_set = self.get_machine_set(machine_set_name)
         role = machine_set.metadata.labels["machine.openshift.io/cluster-api-machine-role"]
         return role
@@ -265,7 +265,7 @@ class OcpMachines(OcpBase):
             return machine.metadata.labels["machine.openshift.io/cluster-api-machineset"]
         else:
             logger.warning(f"machine {machine_name} with role {machine_role} is not part of machineset")
-            return ''
+            return ""
 
     def get_machines_in_machineset(self, machine_set: str) -> ResourceList:
         """

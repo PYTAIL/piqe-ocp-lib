@@ -239,7 +239,7 @@ class TestOcpNodes:
         node_count = len(api_response.items)
         logger.info("{} master nodes returned in the list".format(node_count))
         for master_node in api_response.items:
-            assert 'node-role.kubernetes.io/master' in master_node.metadata.labels.keys()
+            assert "node-role.kubernetes.io/master" in master_node.metadata.labels.keys()
         assert api_response.kind == "NodeList"
 
     def test_get_all_worker_nodes(self, setup_params):
@@ -257,7 +257,7 @@ class TestOcpNodes:
         logger.info("{} worker nodes returned in the list".format(node_count))
         if len(api_response.items) > 0:
             for worker_node in api_response.items:
-                assert 'node-role.kubernetes.io/worker' in worker_node.metadata.labels.keys()
+                assert "node-role.kubernetes.io/worker" in worker_node.metadata.labels.keys()
         assert api_response.kind == "NodeList"
 
     def test_is_node_schedulable(self, setup_params):

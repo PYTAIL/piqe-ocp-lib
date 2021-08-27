@@ -112,7 +112,7 @@ class OcpBase:
         instpecting the Infastructure resource.
         :return: (str) The name of the infrastructure provider or None
         """
-        provider = ''
+        provider = ""
         try:
             api_response = self.dyn_client.resources.search(api_version="config.openshift.io/v1", kind="Infrastructure")
             assert isinstance(api_response, list)

@@ -1,9 +1,9 @@
 import logging
 import subprocess
+from typing import Optional
 
 from kubernetes.client.rest import ApiException
 from openshift.dynamic.resource import ResourceInstance, ResourceList
-from typing import Optional
 
 from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.api.resources.ocp_base import OcpBase
@@ -312,11 +312,7 @@ class OcpNodes(OcpBase):
         :return: A V1Node object. None on failure.
         """
         api_response = None
-        body = {
-            "spec": {
-                "unschedulable": False
-            }
-        }
+        body = {"spec": {"unschedulable": False}}
         schedulable_status = self.is_node_schedulable(node_name)
         if schedulable_status:
             logger.info("Node %s is already schedulable" % node_name)
@@ -336,11 +332,7 @@ class OcpNodes(OcpBase):
         :return: A V1Node object. None on failure.
         """
         api_response = None
-        body = {
-            "spec": {
-                "unschedulable": True
-            }
-        }
+        body = {"spec": {"unschedulable": True}}
         unschedulable_status = self.is_node_schedulable(node_name)
         if not unschedulable_status:
             logger.info("Node %s already unscheduled" % node_name)
